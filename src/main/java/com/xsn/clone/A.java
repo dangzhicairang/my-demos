@@ -1,12 +1,12 @@
 package com.xsn.clone;
 
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 
 @Data
-@Log4j
+@Slf4j
 public class A implements Cloneable, Serializable {
     String a1;
     String a2;
