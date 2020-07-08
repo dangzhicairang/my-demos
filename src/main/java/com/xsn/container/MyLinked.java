@@ -1,17 +1,14 @@
 package com.xsn.container;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
-public class SingleLinked<T> implements Linked<T> {
+public class MyLinked<T> implements Linked<T> {
 
     private int size;
     private Node<T> head;
 
-    public SingleLinked() {
+    public MyLinked() {
         size = 0;
         head = null;
     }
@@ -155,7 +152,7 @@ public class SingleLinked<T> implements Linked<T> {
     }
 
     public static void main(String[] args) {
-        SingleLinked<String> singleLinked = new SingleLinked<>();
+        MyLinked<String> singleLinked = new MyLinked<>();
 
         System.out.println(singleLinked.add("1", 0));
         System.out.println(singleLinked.add("2", 1));
