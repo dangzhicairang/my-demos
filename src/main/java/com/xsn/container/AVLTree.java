@@ -1,7 +1,6 @@
 package com.xsn.container;
 
-public class MyBSTree<T extends Comparable<T>> {
-
+public class AVLTree<T extends Comparable<T>> {
     private Node<T> mRoot;		//根结点
 
     public class Node<T extends Comparable<T>> {	//内部类
@@ -31,63 +30,195 @@ public class MyBSTree<T extends Comparable<T>> {
         }
     }
 
-    public MyBSTree() {
+    public AVLTree() {
         mRoot = null;
     }
 
-    /**
-     * 当mRoot为空，则插入的为根元素
-     * 否则为子树
-     * @param key
-     */
     public void insert(T key) {
         if (mRoot == null) {
             mRoot = new Node<>(key, null, null, null);
-
         } else {
             insert(mRoot, key);
         }
     }
 
-    /**
-     * 与当前节点key作比较，小于当前节点是，先判断是否叶子节点，
-     * 实则插入为左子树，否则递归插入左子树。右边同理
-     * @param z
-     * @param key
-     */
     private void insert(Node<T> z, T key) {
-        Node node = null;
         int cmp = key.compareTo(z.key);
+        Node node = null;
 
         if (cmp < 0) {
-            node = z.left;
-
-            if (node == null) {
-
-                z.left = new Node<>(key, null, null, z);
+            if (z.left == null) {
+                node = new Node<>(key, null, null, z);
+                z.left = node;
             } else {
-
-                insert(node, key);
+                insert(z.left, key);
             }
-
-            return;
         }
 
         if (cmp > 0) {
-            node = z.right;
-
-            if (node == null) {
-
-                z.right = new Node<>(key, null, null, z);
+            if (z.right == null) {
+                node = new Node<>(key, null, null, z);
+                z.right = node;
             } else {
-
-                insert(node, key);
+                insert(z.right, key);
             }
+        }
 
+        if (cmp == 0) {
             return;
         }
 
-        throw new RuntimeException("can not insert existed key");
+        /**
+         * 插入一个节点后检查平衡性
+         */
+        if (node != null) {
+            balance(node);
+        }
+    }
+
+    /**
+     * 从当前节点向上追溯（实际上如果是插入的话当前节点和当前节点的父节点是可以不检查的）
+     * 当BF = 2，即左子树深度 - 右子树深度 = 2 时，整棵树需要右旋（或者先左旋后右旋）
+     * 当BF = -2，即左子树深度 - 右子树深度 = -2 时，整棵树需要左旋（或者先右旋后左旋）
+     * @param node
+     */
+    private void balance(Node node) {
+        Node target = node;
+
+        while (target != null) {
+            Node l = target.left;
+            Node r = target.right;
+            int deep = getDeep(l) - getDeep(r);
+
+            if (deep == 2) {
+                rightAction(node, target);
+                break;
+            }
+
+            if (deep == -2) {
+                leftAction(node, target);
+                break;
+            }
+
+            target = target.parent;
+        }
+    }
+
+    public int getDeep(T key) {
+        Node node = search(key);
+        return getDeep(node);
+    }
+
+    /**
+     * 获取节点的深度
+     * 当前节点为空则为0
+     * 当前节点为叶子节点则为1
+     * 否则为1 + 左右子树中较深的值
+     * @param node
+     * @return
+     */
+    private int getDeep(Node node) {
+        if (node == null) {
+            return 0;
+        }
+
+        if (node.left == null && node.right == null) {
+            return 1;
+        }
+
+        return 1 + Math.max(getDeep(node.left), getDeep(node.right));
+    }
+
+    /**
+     * 右旋之前，若插入节点是右孩子节点（之前画的情况2图）
+     * 则需要先左旋其父节点，再右旋BF不平衡节点
+     * @param node
+     * @param target
+     */
+    private void rightAction(Node node, Node target) {
+        if (node == node.parent.right) {
+            leftRound(node.parent);
+        }
+
+        rightRound(target);
+    }
+
+    /**
+     * 右旋操作
+     * @param node
+     */
+    private void rightRound(Node node) {
+        // 目标节点的左孩子
+        Node left = node.left;
+        // 目标节点的父节点
+        Node pre = node.parent;
+
+        // 若左孩子存在右孩子，则将该右孩子指向目标节点的左孩子（情况1的衍生图）
+        if (left.right != null) {
+            left.right.parent = node;
+        }
+        // 目标节点的左孩子指向其左孩子的右孩子（即便它是null）
+        node.left = left.right;
+
+        if (pre == null) {
+            // 若父节点为空，即目标节点原本是根节点，则目标节点左孩子晋升为根节点
+            mRoot = left;
+        } else {
+            /**
+             * 否则，若目标节点为其父节点的左孩子，则父节点的左孩子指向标节点左孩子
+             * 反之亦然
+             */
+            if (node == pre.right) {
+                pre.right = left;
+            } else {
+                pre.left = left;
+            }
+        }
+
+        /**
+         * 目标节点左孩子的父节点指向目标节点父节点
+         * 目标节点父节点指向其左孩子节点
+         * 左孩子节点的右孩子指向目标节点
+         */
+        left.parent = pre;
+        node.parent = left;
+        left.right = node;
+    }
+
+    private void leftAction(Node node, Node target) {
+        if (node == node.parent.left) {
+            rightRound(node.parent);
+        }
+
+        leftRound(target);
+    }
+
+    /**
+     * 与右旋操作对称
+     * @param node
+     */
+    private void leftRound(Node node) {
+        Node right = node.right;
+        Node pre = node.parent;
+
+        if (right.left != null) {
+            right.left.parent = node;
+        }
+        node.right = right.left;
+
+        if (pre == null) {
+            mRoot = right;
+        } else {
+            if (node == pre.left) {
+                pre.left = right;
+            } else {
+                pre.right = right;
+            }
+        }
+
+        right.parent = pre;
+        node.parent = right;
+        right.left = node;
     }
 
     /**
@@ -312,49 +443,57 @@ public class MyBSTree<T extends Comparable<T>> {
     }
 
     /**
-     * 当前节点为叶子节点（无左右子树），则直接删除
-     * （当前为父节点的左子时，父节点左子指向null，反之亦然）
-     * 当前节点只有左子时，把左子直接指向父节点，父节点左子指向当前节点左子
-     * 反之亦然
-     * 当前节点既有左子树又有右子树时，取前置或后置节点代替当前节点
-     * 并移除该前置或后置节点
+     * 与二叉排序树实现不同的地方是
+     * 再删除节点后需要检查平衡性
+     * 而检查的起始点如下：
+     * 当删除的是叶子节点时，从其父元素开始追溯检查
+     * 当删除的节点只有左（右）子树时，从其父元素开始追溯检查
+     * 当删除的节点既有左子树，也有右子树时，其节点值替换成后继节点的值
+     *      并删除后继节点，递归检查平衡性
      * @param node
      */
     private void remove(Node node) {
-        if (node == null) {
-            return;
-        }
+        if (node != null) {
+            Node target = null;
 
-        if (node.left == null && node.right == null) {
-            Node pre = node.parent;
+            if (node.left == null && node.right == null) {
+                target = node.parent;
 
-            if (node == pre.left) {
-                pre.left = null;
-            } else {
-                pre.right = null;
+                if (node == target.left) {
+                    target.left = null;
+                } else {
+                    target.right = null;
+                }
+
+                node = null;
+
+            } else if (node.left == null) {
+                target = node.parent;
+
+                Node right = node.right;
+                right.parent = target;
+                target.right = right;
+
+                node = null;
+
+            } else if (node.right == null) {
+                target = node.parent;
+
+                Node left = node.left;
+                left.parent = target;
+                target.right = left;
+
+                node = null;
+
+            } else if (node.left != null && node.right != null) {
+                Node next = next(node);
+                node.key = next.key;
+                remove(next);
             }
 
-            return;
-        }
-
-        if (node.left == null) {
-            node.parent.right = node.right;
-            node.right.parent = node.parent;
-            return;
-        }
-
-        if (node.right == null) {
-            node.parent.left = node.left;
-            node.left.parent = node.parent;
-            return;
-        }
-
-
-        if (node.left != null && node.right != null) {
-            Node<T> temp = next(node);
-            node.key = temp.key;
-            remove(temp);
-            return;
+            if (target != null) {
+                balance(target);
+            }
         }
     }
 
@@ -397,28 +536,16 @@ public class MyBSTree<T extends Comparable<T>> {
     }
 
     public static void main(String[] args) {
-        MyBSTree myBSTree = new MyBSTree();
+        AVLTree avlTree = new AVLTree();
 
-        Integer[] is = {23, 18, 46, 22, 32, 14, 29, 16, 17, 5, 44, 7, 1};
+        Integer[] is = {23, 18, 46, 22, 32, 14, 29, 16, 17, 5, 44, 7, 4, 1};
         for (Integer i : is) {
-            myBSTree.insert(i);
+            avlTree.insert(i);
         }
 
-        // myBSTree.clear();
+        // avlTree.print();
 
-        System.gc();
-
-        // myBSTree.print();
-
-        // myBSTree.preOrder();
-
-        /*System.out.println(myBSTree.max());
-        System.out.println(myBSTree.min());
-
-        System.out.println(myBSTree.pre(22));
-        System.out.println(myBSTree.next(22));*/
-
-        /*myBSTree.remove(14);
-        myBSTree.print();*/
+        avlTree.remove(7);
+        avlTree.print();
     }
 }

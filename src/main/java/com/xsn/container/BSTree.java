@@ -453,7 +453,7 @@ public class BSTree<T extends Comparable<T>> {
         tree = null;
     }
 
-    private static final int arr[] = {5, 6, 1, 9, 4, 3};
+    private static final Integer arr[] = {5, 6, 1, 9, 4, 3};
 
     public static void main(String[] args) {
         BSTree<Integer> tree = new BSTree<>();
@@ -471,8 +471,8 @@ public class BSTree<T extends Comparable<T>> {
         System.out.println("==后序遍历：");
         tree.postOrder();*/
 
-        System.out.println("++++输出树++++");
-        tree.print();
+        /*System.out.println("++++输出树++++");
+        tree.print();*/
 
         /*System.out.println("==最小值："+tree.min());
         System.out.println("==最大值："+tree.max());*/
@@ -481,9 +481,11 @@ public class BSTree<T extends Comparable<T>> {
         tree.remove(arr[3]);
 
         System.out.println("==中序遍历：");
-        tree.inOrder();
+        tree.inOrder();*/
 
         //销毁二叉树
-        tree.clear();*/
+        tree.clear();
+        System.out.println(tree.search(6));
+
     }
 }
