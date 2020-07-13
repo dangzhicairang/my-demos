@@ -517,6 +517,7 @@ public class AVLTree<T extends Comparable<T>> {
      * 		  1,表示该结点是它的父结点的右孩子
      */
     public void print() {
+
         if (mRoot != null) {
             print(mRoot, mRoot.key, 0);
         }
