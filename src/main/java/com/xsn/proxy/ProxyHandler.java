@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class ProxyHandler implements InvocationHandler {
+
     private Object object;
 
     public ProxyHandler(Object object) {
@@ -24,8 +25,11 @@ public class ProxyHandler implements InvocationHandler {
 
         InvocationHandler invocationHandler = new ProxyHandler(hello);
 
-        Hello proxy = (Hello) Proxy.newProxyInstance(hello.getClass().getClassLoader(),
-                hello.getClass().getInterfaces(), invocationHandler);
+        Hello proxy = (Hello) Proxy.newProxyInstance(
+                hello.getClass().getClassLoader(),
+                hello.getClass().getInterfaces(),
+                invocationHandler
+        );
 
         proxy.hello();
     }
